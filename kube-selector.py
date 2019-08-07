@@ -14,7 +14,7 @@ for conffile in os.listdir(CONF_PATH):
         print("%i: %s" % (i, conffile))
         i = i + 1
 
-val = input("Selection: ")
+val = int(input("Selection: "))
 
 # Try to remove existing config file if exists
 try:
