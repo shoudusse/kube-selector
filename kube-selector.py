@@ -33,7 +33,7 @@ for conffile in conffiles:
             indice = "> %i" % i
         else:
             indice = "  %i" % i
-        print("%s: %s" % (indice, conffile))
+        print("%s: %s" % (indice, conffile.replace('config-', '', 1)))
         i = i + 1
 
 try:
