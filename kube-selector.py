@@ -19,7 +19,7 @@ except OSError as error:
             "[ERROR] Current config file is not a symlink. Aborting to avoid current config lost.")
         sys.exit(1)
     if error.errno == 2:
-        print("[WARN] Active config file was not found")
+        print("[WARN] Active config file not found")
         current = None
 
 for conffile in os.listdir(CONF_PATH):
