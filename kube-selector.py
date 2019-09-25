@@ -25,6 +25,10 @@ except OSError as error:
 for conffile in os.listdir(CONF_PATH):
     if re.match('^config-', conffile):
         conffiles.append(conffile)
+
+conffiles.sort()
+
+for conffile in conffiles:
         if os.path.join(CONF_PATH, conffile) == current:
             indice = "> %i" % i
         else:
@@ -33,7 +37,7 @@ for conffile in os.listdir(CONF_PATH):
         i = i + 1
 
 try:
-    val = int(input("Selection: "))
+    val = int(input("Selection (Ctrl+C to cancel): "))
 except KeyboardInterrupt:
     print("\n[INFO] Nothing changed. Bye, bye !")
     sys.exit(0)
