@@ -17,6 +17,7 @@ CURRENT = None
 try:
     CURRENT = os.readlink(DST)
 except OSError as error:
+    # Abort if config exists but is a plain file — switching would silently overwrite it.
     if error.errno == errno.EINVAL:
         print(
             "[ERROR] Current config file is not a symlink. Aborting to avoid current config loss.")
@@ -30,6 +31,7 @@ for conffile in os.listdir(CONF_PATH):
 
 conffiles.sort()
 
+# Bubble the active config to the top so fzf pre-selects it.
 for conffile in list(conffiles):
     if os.path.join(CONF_PATH, conffile) == CURRENT:
         conffiles.remove(conffile)
@@ -46,6 +48,7 @@ except KeyboardInterrupt:
     sys.exit(0)
 
 src = os.path.join(CONF_PATH, val)
+# Write to a temp path then rename for an atomic swap — avoids a window where DST is missing.
 tmp = tempfile.mktemp(dir=CONF_PATH)
 os.symlink(src, tmp)
 os.replace(tmp, DST)
