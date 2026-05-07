@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# pylint: disable=invalid-name
+"""Interactively select a kubectl config file and symlink it as the active config."""
 
 import errno
 import os
@@ -7,15 +9,13 @@ import sys
 import tempfile
 from iterfzf import iterfzf
 
-conffiles = []
-i = 1
-
 CONF_PATH = os.path.join(os.getenv("HOME"), '.kube')
-dst = os.path.join(CONF_PATH, 'config')
+DST = os.path.join(CONF_PATH, 'config')
+conffiles = []
 
-# Search for current symlink
+CURRENT = None
 try:
-    current = os.readlink(dst)
+    CURRENT = os.readlink(DST)
 except OSError as error:
     if error.errno == errno.EINVAL:
         print(
@@ -23,7 +23,6 @@ except OSError as error:
         sys.exit(1)
     if error.errno == errno.ENOENT:
         print("[WARN] Active config file not found")
-        current = None
 
 for conffile in os.listdir(CONF_PATH):
     if re.match('^config-', conffile):
@@ -31,26 +30,24 @@ for conffile in os.listdir(CONF_PATH):
 
 conffiles.sort()
 
-# Put current config file in first place
-for conffile in conffiles:
-    if os.path.join(CONF_PATH, conffile) == current:
+for conffile in list(conffiles):
+    if os.path.join(CONF_PATH, conffile) == CURRENT:
         conffiles.remove(conffile)
         conffiles.insert(0, conffile)
 
 try:
     choice = iterfzf(conffiles)
-    if choice == None:
+    if choice is None:
         raise KeyboardInterrupt()
-    else:
-        val = choice
+    val = choice
 except KeyboardInterrupt:
-    current_display = conffiles[0] if conffiles else "unknown"
-    print("\n[INFO] Nothing changed. Your k8s config file is still %s Bye, bye !" % current_display)
+    CURRENT_DISPLAY = conffiles[0] if conffiles else "unknown"
+    print(f"\n[INFO] Nothing changed. Your k8s config file is still {CURRENT_DISPLAY} Bye, bye !")
     sys.exit(0)
 
 src = os.path.join(CONF_PATH, val)
 tmp = tempfile.mktemp(dir=CONF_PATH)
 os.symlink(src, tmp)
-os.replace(tmp, dst)
+os.replace(tmp, DST)
 
-print("[OK] Your k8s config file is now '%s'" % val)
+print(f"[OK] Your k8s config file is now '{val}'")
