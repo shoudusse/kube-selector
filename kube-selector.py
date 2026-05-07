@@ -49,7 +49,10 @@ except KeyboardInterrupt:
 
 src = os.path.join(CONF_PATH, val)
 # Write to a temp path then rename for an atomic swap — avoids a window where DST is missing.
-tmp = tempfile.mktemp(dir=CONF_PATH)
+# mkstemp gives a guaranteed-unique path; we replace it with a symlink before renaming.
+fd, tmp = tempfile.mkstemp(dir=CONF_PATH)
+os.close(fd)
+os.unlink(tmp)
 os.symlink(src, tmp)
 os.replace(tmp, DST)
 
