@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+import errno
 import os
 import re
 import sys
+import tempfile
 from iterfzf import iterfzf
 
 conffiles = []
@@ -15,11 +17,11 @@ dst = os.path.join(CONF_PATH, 'config')
 try:
     current = os.readlink(dst)
 except OSError as error:
-    if error.errno == 22:
+    if error.errno == errno.EINVAL:
         print(
             "[ERROR] Current config file is not a symlink. Aborting to avoid current config loss.")
         sys.exit(1)
-    if error.errno == 2:
+    if error.errno == errno.ENOENT:
         print("[WARN] Active config file not found")
         current = None
 
@@ -42,16 +44,13 @@ try:
     else:
         val = choice
 except KeyboardInterrupt:
-    print("\n[INFO] Nothing changed. Your k8s config file is still %s Bye, bye !" % conffiles[0])
+    current_display = conffiles[0] if conffiles else "unknown"
+    print("\n[INFO] Nothing changed. Your k8s config file is still %s Bye, bye !" % current_display)
     sys.exit(0)
 
-# Try to remove existing config file if exists
-try:
-    os.remove(dst)
-except OSError:
-    print("[WARN] Active config file was not found")
-
 src = os.path.join(CONF_PATH, val)
-os.symlink(src, dst)
+tmp = tempfile.mktemp(dir=CONF_PATH)
+os.symlink(src, tmp)
+os.replace(tmp, dst)
 
 print("[OK] Your k8s config file is now '%s'" % val)
